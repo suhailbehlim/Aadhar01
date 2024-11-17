@@ -38,74 +38,58 @@
 
   <div class="container mt-5">
     <h1 class="text-center">Citizen Details</h1>
-
+  
     <!-- Buttons at top right -->
     <div class="d-flex justify-content-end mt-4 mb-2">
       <a href="mukhtarInterface.html" class="btn btn-primary me-2">Back to List</a>
       <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addWitnessModal">Add Witness</button>
     </div>
-
-    <div class="card mt-2">
-      <div class="card-body">
-        <table class="table table-bordered">
-          <thead>
-            <tr>
-              <th>Field</th>
-              <th>Detail</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Name</td>
-              <td id="citizenName"></td>
-            </tr>
-            <tr>
-              <td>Email</td>
-              <td id="citizenEmail"></td>
-            </tr>
-            <tr>
-              <td>Phone</td>
-              <td id="citizenPhone"></td>
-            </tr>
-            <tr>
-              <td>Unique Code</td>
-              <td id="uniqueCode"></td>
-            </tr>
-            <tr>
-              <td>Area</td>
-              <td id="area"></td>
-            </tr>
-            <tr>
-              <td>Street Number</td>
-              <td id="streetNumber"></td>
-            </tr>
-            <tr>
-              <td>House Number</td>
-              <td id="houseNumber"></td>
-            </tr>
-            <tr>
-              <td>Housing Status</td>
-              <td id="housingStatus"></td>
-            </tr>
-            <tr>
-              <td>National ID</td>
-              <td><a id="nationalIdLink" target="_blank">View</a></td>
-            </tr>
-            <tr>
-              <td>Another ID</td>
-              <td><a id="anotherIdLink" target="_blank">View</a></td>
-            </tr>
-          </tbody>
-        </table>
-
-        <h6>Family Members</h6>
-        <div id="familyMembers"></div>
-        <h6>Witnesses</h6>
-        <div id="witnessLog"></div>
-        
+  
+    <!-- Two Tables in One Row -->
+    <div class="row">
+      <!-- Citizen Data Table -->
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Citizen Data</h5>
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Detail</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Name</td><td id="citizenName"></td></tr>
+                <tr><td>Email</td><td id="citizenEmail"></td></tr>
+                <tr><td>Phone</td><td id="citizenPhone"></td></tr>
+                <tr><td>Unique Code</td><td id="uniqueCode"></td></tr>
+                <tr><td>Area</td><td id="area"></td></tr>
+                <tr><td>Street Number</td><td id="streetNumber"></td></tr>
+                <tr><td>House Number</td><td id="houseNumber"></td></tr>
+                <tr><td>Housing Status</td><td id="housingStatus"></td></tr>
+                <tr><td>National ID</td><td><a id="nationalIdLink" target="_blank">View</a></td></tr>
+                <tr><td>Another ID</td><td><a id="anotherIdLink" target="_blank">View</a></td></tr>
+              </tbody>
+            </table>
+            <h6>Family Members</h6>
+            <div id="familyMembers"></div>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Witness Data Table -->
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Witness Data</h5>
+            <div id="witnessLog"></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
+  
 
  <!-- Add Witness Modal -->
 <div class="modal fade" id="addWitnessModal" tabindex="-1" aria-labelledby="addWitnessModalLabel" aria-hidden="true">
@@ -146,6 +130,13 @@
             <label for="witnessSignatureFile" class="form-label">Upload Witness Signature</label>
             <input type="file" class="form-control" id="witnessSignatureFile" accept="image/*,.pdf" required>
           </div>
+<!-- Status Dropdown -->
+<div class="mb-3">
+  <label for="witnessStatus" class="form-label">Status</label>
+  <select class="form-select" id="witnessStatus" required>
+    <option value="Approved by Mukhtar">Approved by Mukhtar</option>
+  </select>
+</div>
 
           <button type="submit" class="btn btn-primary">Save Witness</button>
         </form>
@@ -171,6 +162,7 @@
     function loadCitizenDetails() {
       const uniqueCode = getQueryParam('uniqueCode');
       const citizens = JSON.parse(localStorage.getItem('citizens')) || [];
+      const userRole = localStorage.getItem('userRole'); // Retrieve userRole from localStorage
 
       const citizen = citizens.find(c => c.uniqueCode === uniqueCode);
 
@@ -216,15 +208,32 @@
             <li><a href="uploads/${witness.documents[key]}" target="_blank">Document ${parseInt(key) + 1}</a></li>
           `).join('')}
         </ul>
+  <p><strong>Status:</strong></p>
+        <select class="form-select" data-index="${index}" ${userRole !== 'Admin' ? 'disabled' : ''}>
+          <option value="Approved by Mukhtar" ${witness.status === 'Approved by Mukhtar' ? 'selected' : ''}>Approved by Mukhtar</option>
+          <option value="Approved by Governorate" ${witness.status === 'Approved by Governorate' ? 'selected' : ''}>Approved by Governorate</option>
+        </select>
         <hr>
       `;
       witnessLogDiv.appendChild(witnessDiv);
     });
+
+    if (userRole === 'Admin') {
+      // Add event listener to update status only if user is Admin
+      document.querySelectorAll('#witnessLog select').forEach(select => {
+        select.addEventListener('change', function () {
+          const witnessIndex = this.getAttribute('data-index');
+          citizen.witnesses[witnessIndex].status = this.value;
+          localStorage.setItem('citizens', JSON.stringify(citizens));
+          alert('Witness status updated!');
+        });
+      });
+    }
   } else {
     alert('Citizen details not found!');
   }
+ 
 }
-     
 
     function logout() {
       localStorage.removeItem('userRole');
@@ -249,7 +258,8 @@
   const witnessName = document.getElementById('witnessName').value.trim();
   const witnessPhone = document.getElementById('witnessPhone').value.trim();
   const witnessDocsInput = document.getElementById('witnessDocs').files;
-  
+  const witnessStatus = document.getElementById('witnessStatus').value; // Get the status
+
   if (!witnessName || !witnessPhone || witnessDocsInput.length === 0) {
     alert('Please fill out all fields and upload at least one document.');
     return;
@@ -264,7 +274,9 @@
   const witness = {
     name: witnessName,
     phone: witnessPhone,
-    documents: witnessDocs
+    documents: witnessDocs,
+    status: witnessStatus // Store the selected status
+
   };
 
   // Add the witness to the citizen's witnesses array
@@ -274,7 +286,7 @@
   // Update the local storage
   localStorage.setItem('citizens', JSON.stringify(citizens));
 
-  alert('Witness added successfully!');
+  alert('Witness added successfully!your Request is sent to the Governorate ');
   loadCitizenDetails(); // Refresh the displayed data
   document.getElementById('witnessForm').reset(); // Clear the form
   citizenSignaturePad.clear(); // Clear signature pad

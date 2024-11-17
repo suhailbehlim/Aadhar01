@@ -181,7 +181,7 @@
     allCitizens.push(citizenData);
     localStorage.setItem('citizens', JSON.stringify(allCitizens));
 
-    alert(`Citizen registered. Unique code: ${citizenData.uniqueCode}`);
+    alert(`Citizen registered Unique code is sent to ${citizenData.email}.Or take screenshot of Unique code: ${citizenData.uniqueCode}`);
     this.reset();
   });
 
@@ -198,7 +198,10 @@
     const citizenData = JSON.parse(localStorage.getItem('citizenData'));
 
     if (hardcodedUsers[email] && hardcodedUsers[email].password === password) {
+      localStorage.setItem('userRole', hardcodedUsers[email].role);
+
       alert(`Welcome ${hardcodedUsers[email].role}`);
+
       window.location.href = "mukhtarInterface.html";
     } else if (citizenData && citizenData.email === email && citizenData.uniqueCode === password) {
       alert('Welcome Citizen!');
