@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Citizen Information</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f8f9fa;
+      display: flex;
+      height: 100vh;
+      flex-direction: column;
+    }
+    .container {
+      margin-top: 30px;
+    }
+    .card {
+      margin: 20px 0;
+      border: none;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .card-header {
+      font-size: 1.5rem;
+      font-weight: bold;
+      text-align: center;
+    }
+    .icon {
+      font-size: 1.5rem;
+      margin-right: 10px;
+    }
+    .navbar {
+      background-color: #007bff;
+      padding: 10px 20px;
+      position: fixed;
+      width: 100%;
+      top: 0;
+      z-index: 1000;
+    }
+    .navbar .navbar-brand {
+      color: white;
+      font-size: 24px;
+    }
+    .navbar .navbar-nav .nav-link {
+      color: white;
+    }
+    .main-content {
+      margin-top: 70px;
+      flex-grow: 1;
+    }
+    .search-input {
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">Mukhtar Dashboard</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="javascript:void(0);" onclick="logout()">Logout <i class="fas fa-sign-out-alt"></i></a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <!-- Main Content Area -->
+  <div class="main-content" id="mainContent">
+    <div class="container">
+      <!-- Search Input -->
+      <div class="search-input">
+        <input type="text" id="searchInput" class="form-control" placeholder="Search by Name, Unique Code, Phone, or Email" oninput="filterCitizens()" />
+      </div>
+
+      <!-- Citizen Info Table -->
+      <div class="row" id="citizenInfo">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-header bg-info text-white">
+              <i class="fas fa-table icon"></i> Citizen Information
+            </div>
+            <div class="card-body">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Phone Number</th>
+                    <th>Email</th>
+                    <th>Unique Code</th>
+                    <th>Barcode Data</th>
+                  </tr>
+                </thead>
+                <tbody id="resultTableBody">
+                  <!-- Table rows will be dynamically inserted here -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS, Popper.js, and jQuery -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.4.4/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+  <script>
+    // Function to load citizens data from localStorage
+    function loadCitizens() {
+      const citizensData = localStorage.getItem('citizens');
+      if (citizensData) {
+        console.log('Data found in LocalStorage:', citizensData); // Debugging line
+        return JSON.parse(citizensData);
+      } else {
+        console.log('No citizen data found in LocalStorage'); // Debugging line
+        return [];
+      }
+    }
+
+    // Function to render citizen info in the table
+    function renderCitizenInfo(citizensToDisplay) {
+      const tableBody = document.getElementById('resultTableBody');
+      tableBody.innerHTML = ''; // Clear existing table rows
+
+      if (Array.isArray(citizensToDisplay)) {
+        // If it's an array, loop over each citizen
+        citizensToDisplay.forEach(function(citizen) {
+          renderRow(citizen, tableBody);
+        });
+      } else {
+        // If it's a single object, render it directly
+        renderRow(citizensToDisplay, tableBody);
+      }
+    }
+
+    // Helper function to render a single row
+    function renderRow(citizen, tableBody) {
+      let row = document.createElement('tr');
+       // Add a click event listener to navigate to detail page
+  row.addEventListener('click', function() {
+    window.location.href = `citizenDetail.html?uniqueCode=${encodeURIComponent(citizen.uniqueCode)}`;
+  });
+      // Name
+      let nameCell = document.createElement('td');
+      nameCell.textContent = citizen.name;
+      row.appendChild(nameCell);
+
+      // Phone Number
+      let phoneCell = document.createElement('td');
+      phoneCell.textContent = citizen.phone;
+      row.appendChild(phoneCell);
+
+      // Email
+      let emailCell = document.createElement('td');
+      emailCell.textContent = citizen.email;
+      row.appendChild(emailCell);
+
+      // Verification Code
+      let verificationCodeCell = document.createElement('td');
+      verificationCodeCell.textContent = citizen.uniqueCode;
+      row.appendChild(verificationCodeCell);
+
+      // Barcode Data
+      let barcodeCell = document.createElement('td');
+      barcodeCell.textContent = citizen.barcode || 'No barcode data';
+      row.appendChild(barcodeCell);
+
+      tableBody.appendChild(row);
+    }
+
+    // Search function to filter citizens based on input
+    function filterCitizens() {
+      const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+      const citizens = loadCitizens();
+
+      const filteredCitizens = citizens.filter(citizen => {
+        return (
+          citizen.name.toLowerCase().includes(searchQuery) ||
+          citizen.uniqueCode.toLowerCase().includes(searchQuery) ||
+          citizen.phone.toLowerCase().includes(searchQuery) ||
+          citizen.email.toLowerCase().includes(searchQuery)
+        );
+      });
+
+      renderCitizenInfo(filteredCitizens);
+    }
+
+    // Logout function to clear session and navigate to index.html
+    function logout() {
+      // Clear any session or local storage data (if necessary)
+      // localStorage.removeItem('citizenData'); // Example: Clear citizen data (if it's stored in localStorage)
+      // Redirect to the index page
+      window.location.href = 'index.html';
+    }
+
+    // Call renderCitizenInfo on page load to display the citizen's info
+    let citizens = loadCitizens();
+    window.onload = function() {
+      console.log('Loaded Citizens:', citizens); // Debugging line
+      if (citizens && Object.keys(citizens).length > 0) {
+        renderCitizenInfo(citizens);
+      } else {
+        alert('No citizen data found');
+      }
+    };
+  </script>
+
+</body>
+</html>

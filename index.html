@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login & Register Citizenship</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .container {
+      margin-top: 50px;
+    }
+    .card {
+      margin: 20px 0;
+      border: none;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .card-header {
+      font-size: 1.5rem;
+      font-weight: bold;
+      text-align: center;
+    }
+    .icon {
+      font-size: 2rem;
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="row">
+    <!-- Login Box -->
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <i class="fas fa-sign-in-alt icon"></i> Login
+        </div>
+        <div class="card-body">
+          <form>
+            <div class="form-group">
+              <label for="loginEmail">Email</label>
+              <input type="email" class="form-control" id="loginEmail" placeholder="Enter your email">
+            </div>
+            <div class="form-group">
+              <label for="loginPassword">Password</label>
+              <input type="password" class="form-control" id="loginPassword" placeholder="Enter your password">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" onclick="handleLogin(event)">Login</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Register Citizenship Box -->
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header bg-success text-white">
+          <i class="fas fa-id-card icon"></i> Register Citizenship
+        </div>
+        <div class="card-body">
+          <form id="registerForm">
+            <div class="form-group">
+              <label for="citizenName">Full Name</label>
+              <input type="text" class="form-control" id="citizenName" placeholder="Enter your full name" required>
+            </div>
+            <div class="form-group">
+              <label for="citizenPhone">Phone Number</label>
+              <input type="tel" class="form-control" id="citizenPhone" placeholder="Enter your phone number" required>
+            </div>
+            <div class="form-group">
+              <label for="citizenEmail">Email Address</label>
+              <input type="email" class="form-control" id="citizenEmail" placeholder="Enter your email" required>
+            </div>
+            <div class="form-group">
+              <label>Family Information</label>
+              <input type="number" id="familyCount" class="form-control mb-2" placeholder="Number of family members" min="1" required>
+            </div>
+            <div id="familyDetails"></div>
+            <div class="form-group">
+              <label for="citizenAddress">Full Address</label>
+              <input type="text" class="form-control mb-2" id="area" placeholder="Area" required>
+              <input type="text" class="form-control mb-2" id="streetNumber" placeholder="Street Number" required>
+              <input type="text" class="form-control mb-2" id="houseNumber" placeholder="House Number" required>
+            </div>
+            <div class="form-group">
+              <label for="housingStatus">Housing Status</label>
+              <select id="housingStatus" class="form-control" required>
+                <option value="">Select Status</option>
+                <option value="owner">Owner</option>
+                <option value="tenant">Tenant</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Upload Required Documents</label>
+              <div>
+                <label for="nationalId">National ID (Mandatory)</label>
+                <input type="file" class="form-control mb-2" id="nationalId" required>
+              </div>
+              <label for="anotherId">Other ID (e.g., Ration Card, Residence Card, etc.)</label>
+              <input type="file" class="form-control" id="anotherId" required>
+            </div>
+            <button type="submit" class="btn btn-success btn-block">Register</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('familyCount').addEventListener('input', function () {
+    const familyDetails = document.getElementById('familyDetails');
+    familyDetails.innerHTML = '';
+    const count = parseInt(this.value, 10);
+
+    for (let i = 1; i <= count; i++) {
+      familyDetails.innerHTML += `
+        <div class="mb-3 border p-3 rounded">
+          <h5>Family Member ${i}</h5>
+          <div class="form-group">
+            <label>Name</label>
+            <input type="text" class="form-control" id="familyMemberName${i}" required>
+          </div>
+          <div class="form-group">
+            <label>Age</label>
+            <input type="number" class="form-control" id="familyMemberAge${i}" required>
+          </div>
+          <div class="form-group">
+            <label>Upload Image</label>
+            <input type="file" class="form-control" id="familyMemberImage${i}" required>
+          </div>
+        </div>
+      `;
+    }
+  });
+
+  function generateRandomCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let code = '';
+    for (let i = 0; i < 6; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+  }
+
+  document.getElementById('registerForm').addEventListener('submit', function (event) {
+    event.preventDefault();
+
+    const citizenData = {
+      name: document.getElementById('citizenName').value.trim(),
+      phone: document.getElementById('citizenPhone').value.trim(),
+      email: document.getElementById('citizenEmail').value.trim(),
+      familyMembers: [],
+      address: {
+        area: document.getElementById('area').value.trim(),
+        streetNumber: document.getElementById('streetNumber').value.trim(),
+        houseNumber: document.getElementById('houseNumber').value.trim(),
+        housingStatus: document.getElementById('housingStatus').value.trim()
+      },
+      documents: {
+        nationalId: document.getElementById('nationalId').files[0]?.name,
+        anotherId: document.getElementById('anotherId').files[0]?.name
+      },
+      uniqueCode: generateRandomCode()
+    };
+
+    const familyCount = parseInt(document.getElementById('familyCount').value.trim(), 10);
+    for (let i = 1; i <= familyCount; i++) {
+      citizenData.familyMembers.push({
+        name: document.getElementById(`familyMemberName${i}`).value.trim(),
+        age: document.getElementById(`familyMemberAge${i}`).value.trim(),
+        image: document.getElementById(`familyMemberImage${i}`).files[0]?.name
+      });
+    }
+
+    let allCitizens = JSON.parse(localStorage.getItem('citizens')) || [];
+    allCitizens.push(citizenData);
+    localStorage.setItem('citizens', JSON.stringify(allCitizens));
+
+    alert(`Citizen registered. Unique code: ${citizenData.uniqueCode}`);
+    this.reset();
+  });
+
+  function handleLogin(event) {
+    event.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value.trim();
+
+    const hardcodedUsers = {
+      "admin@gmail.com": { password: "admin", role: "Admin" },
+      "mukhtar@gmail.com": { password: "123456", role: "User" }
+    };
+
+    const citizenData = JSON.parse(localStorage.getItem('citizenData'));
+
+    if (hardcodedUsers[email] && hardcodedUsers[email].password === password) {
+      alert(`Welcome ${hardcodedUsers[email].role}`);
+      window.location.href = "mukhtarInterface.html";
+    } else if (citizenData && citizenData.email === email && citizenData.uniqueCode === password) {
+      alert('Welcome Citizen!');
+      window.location.href = "mukhtarInterface.html";
+
+    } else {
+      alert('Invalid login credentials');
+    }
+  }
+</script>
+
+</body>
+</html>
