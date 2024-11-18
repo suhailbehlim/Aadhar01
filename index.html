@@ -7,26 +7,34 @@
   <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
   <style>
-    body {
-      background-color: #f8f9fa;
-    }
-    .container {
-      margin-top: 50px;
-    }
-    .card {
-      margin: 20px 0;
-      border: none;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-    .card-header {
-      font-size: 1.5rem;
-      font-weight: bold;
-      text-align: center;
-    }
-    .icon {
-      font-size: 2rem;
-      margin-right: 10px;
-    }
+  body {
+    background-image: url('https://images.pexels.com/photos/255379/pexels-photo-255379.jpeg?cs=srgb&dl=pexels-padrinan-255379.jpg&fm=jpg'); /* Replace with your image URL */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: #f8f9fa; /* Fallback color */
+  }
+  .container {
+    margin-top: 50px;
+    background-color:transparent; /* Adds a slight background to the form for better readability */
+    border-radius: 8px;
+    padding: 20px;
+  }
+  .card {
+    margin: 20px 0;
+    border: none;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: rgba(255, 255, 255, 0.95);
+  }
+  .card-header {
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-align: center;
+  }
+  .icon {
+    font-size: 2rem;
+    margin-right: 10px;
+  }
   </style>
 </head>
 <body>
@@ -184,33 +192,41 @@
     alert(`Citizen registered Unique code is sent to ${citizenData.email}.Or take screenshot of Unique code: ${citizenData.uniqueCode}`);
     this.reset();
   });
-
   function handleLogin(event) {
-    event.preventDefault();
-    const email = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value.trim();
+  event.preventDefault();
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value.trim();
 
-    const hardcodedUsers = {
-      "admin@gmail.com": { password: "admin", role: "Admin" },
-      "mukhtar@gmail.com": { password: "123456", role: "User" }
-    };
+  const hardcodedUsers = {
+    "admin@gmail.com": { password: "admin", role: "Admin" },
+    "mukhtar@gmail.com": { password: "123456", role: "User" },
+  };
 
-    const citizenData = JSON.parse(localStorage.getItem('citizenData'));
+  const allCitizens = JSON.parse(localStorage.getItem('citizens')) || [];
 
-    if (hardcodedUsers[email] && hardcodedUsers[email].password === password) {
-      localStorage.setItem('userRole', hardcodedUsers[email].role);
-
-      alert(`Welcome ${hardcodedUsers[email].role}`);
-
-      window.location.href = "mukhtarInterface.html";
-    } else if (citizenData && citizenData.email === email && citizenData.uniqueCode === password) {
-      alert('Welcome Citizen!');
-      window.location.href = "mukhtarInterface.html";
-
-    } else {
-      alert('Invalid login credentials');
-    }
+  // Check for hardcoded users
+  if (hardcodedUsers[email] && hardcodedUsers[email].password === password) {
+    localStorage.setItem('userRole', hardcodedUsers[email].role);
+    alert(`Welcome ${hardcodedUsers[email].role}`);
+    window.location.href = "mukhtarInterface.html";
+    return;
   }
+
+  // Check for registered citizens
+  const citizen = allCitizens.find(
+    (cit) => cit.email === email && cit.uniqueCode === password
+  );
+
+  if (citizen) {
+    alert('Welcome Citizen!');
+    localStorage.setItem('citizenemail', email);
+
+    window.location.href = "citizenInterface.html";
+  } else {
+    alert('Invalid login credentials');
+  }
+}
+
 </script>
 
 </body>
