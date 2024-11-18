@@ -40,10 +40,13 @@
     <h1 class="text-center">Citizen Details</h1>
   
     <!-- Buttons at top right -->
-    <div class="d-flex justify-content-end mt-4 mb-2">
-      <a href="mukhtarInterface.html" class="btn btn-primary me-2">Back to List</a>
-      <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addWitnessModal">Add Witness</button>
-    </div>
+    <!-- Buttons at top right -->
+<div class="d-flex justify-content-end mt-4 mb-2">
+  <a href="mukhtarInterface.html" class="btn btn-primary me-2">Back to List</a>
+  <button class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#addWitnessModal">Add Witness</button>
+  <button id="printButton" class="btn btn-warning" onclick="printPDF()" style="display: none;">Print Pdf</button>
+</div>
+
   
     <!-- Two Tables in One Row -->
     <div class="row">
@@ -165,7 +168,9 @@
       const userRole = localStorage.getItem('userRole'); // Retrieve userRole from localStorage
 
       const citizen = citizens.find(c => c.uniqueCode === uniqueCode);
-
+      if (userRole === 'Admin') {
+    document.getElementById('printButton').style.display = 'block'; // Show print button for Admin
+  }
       if (citizen) {
         document.getElementById('citizenName').textContent = citizen.name;
         document.getElementById('citizenEmail').textContent = citizen.email;
@@ -192,6 +197,7 @@
           `;
           familyMembersDiv.appendChild(memberDiv);
         });
+       
 
     // Display witnesses
     const witnessLogDiv = document.getElementById('witnessLog');
@@ -234,6 +240,81 @@
   }
  
 }
+function printPDF() {
+  const uniqueCode = getQueryParam('uniqueCode');
+  const citizens = JSON.parse(localStorage.getItem('citizens')) || [];
+  const citizen = citizens.find(c => c.uniqueCode === uniqueCode);
+
+  if (citizen) {
+    const familyMembersContent = (Array.isArray(citizen.familyMembers) && citizen.familyMembers.length > 0)
+      ? citizen.familyMembers.map((member, index) => `
+        <div>
+          <p><strong>Family Member ${index + 1}:</strong></p>
+          <p>Name: ${member.name || 'N/A'}</p>
+          <p>Age: ${member.age || 'N/A'}</p>
+        </div>
+      `).join('')
+      : '<p>No family members available.</p>';
+
+    const witnessesContent = (Array.isArray(citizen.witnesses) && citizen.witnesses.length > 0)
+      ? citizen.witnesses.map((witness, index) => `
+        <div>
+          <p><strong>Witness ${index + 1}:</strong></p>
+          <p>Name: ${witness.name || 'N/A'}</p>
+          <p>Phone: ${witness.phone || 'N/A'}</p>
+          <p>Status: ${witness.status || 'N/A'}</p>
+        </div>
+      `).join('')
+      : '<p>No witnesses available.</p>';
+
+    const printContent = `
+      <div style="font-family: Arial, sans-serif; margin: 20px;">
+        <h2>Citizen Details</h2>
+        <p><strong>Name:</strong> ${citizen.name || 'N/A'}</p>
+        <p><strong>Email:</strong> ${citizen.email || 'N/A'}</p>
+        <p><strong>Phone:</strong> ${citizen.phone || 'N/A'}</p>
+        <p><strong>Unique Code:</strong> ${citizen.uniqueCode || 'N/A'}</p>
+        <p><strong>Area:</strong> ${citizen.address?.area || 'N/A'}</p>
+        <p><strong>Street Number:</strong> ${citizen.address?.streetNumber || 'N/A'}</p>
+        <p><strong>House Number:</strong> ${citizen.address?.houseNumber || 'N/A'}</p>
+        <p><strong>Housing Status:</strong> ${citizen.housingStatus || 'N/A'}</p>
+        <p><strong>National ID:</strong> <a href="${citizen.nationalId || '#'}" target="_blank">View</a></p>
+        <p><strong>Another ID:</strong> <a href="${citizen.anotherId || '#'}" target="_blank">View</a></p>
+
+        <h3>Family Members</h3>
+        ${familyMembersContent}
+
+        <h3>Witnesses</h3>
+        ${witnessesContent}
+      </div>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Citizen Details</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            h2, h3 { color: #333; }
+            p { margin: 5px 0; }
+          </style>
+        </head>
+        <body>${printContent}</body>
+      </html>
+    `);
+    printWindow.document.close();
+
+    printWindow.onload = function() {
+      printWindow.print();
+      printWindow.close();
+    };
+  } else {
+    alert('No citizen details available to print.');
+  }
+}
+
+
 
     function logout() {
       localStorage.removeItem('userRole');
