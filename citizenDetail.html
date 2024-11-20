@@ -14,6 +14,8 @@
       width: 100%;
       height: 150px;
     }
+    .no-witness-message { color: red; font-weight: bold; }
+
   </style>
 </head>
 
@@ -23,7 +25,7 @@
     <div class="container-fluid">
       <a class="navbar-brand" href="#">
         <img src="img/logo.jpeg" alt="Logo" width="50" height="40" class="d-inline-block align-top" style="margin-right: 10px;">
-        Citizen Dashboard</a>
+         Dashboard</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
         aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -89,6 +91,11 @@
           <div class="card-body">
             <h5 class="card-title">Witness Data</h5>
             <div id="witnessLog"></div>
+            <!-- Message for adding witness if none exist -->
+            <div id="addWitnessPrompt" class="no-witness-message" style="display: none;">
+              No witnesses found! Please Go to Mukhtar  & add witness data for the next step of verification.
+              <!-- <button class="btn btn-success mt-2" data-bs-toggle="modal" data-bs-target="#addWitnessModal">Add Witness</button> -->
+          </div>
           </div>
         </div>
       </div>
@@ -204,6 +211,8 @@
     // Display witnesses
     const witnessLogDiv = document.getElementById('witnessLog');
     witnessLogDiv.innerHTML = '';
+    if (citizen.witnesses && citizen.witnesses.length > 0) {
+
     citizen.witnesses.forEach((witness, index) => {
       const witnessDiv = document.createElement('div');
       witnessDiv.innerHTML = `
@@ -217,7 +226,7 @@
           `).join('')}
         </ul>
   <p><strong>Status:</strong></p>
-        <select class="form-select" data-index="${index}" ${userRole !== 'Admin' ? 'disabled' : ''}>
+<select class="form-select" data-index="${index}" ${userRole !== 'Admin' && userRole !== 'Governor' ? 'disabled' : ''}>
           <option value="Approved by Mukhtar" ${witness.status === 'Approved by Mukhtar' ? 'selected' : ''}>Approved by Mukhtar</option>
           <option value="Approved by Governorate" ${witness.status === 'Approved by Governorate' ? 'selected' : ''}>Approved by Governorate</option>
         </select>
@@ -225,6 +234,26 @@
       `;
       witnessLogDiv.appendChild(witnessDiv);
     });
+      // Check the witness status and show the respective message
+      if (citizen.witnesses.some(witness => witness.status === 'Approved by Mukhtar')) {
+        const messageDiv = document.createElement('div');
+        messageDiv.innerHTML = `<div class="alert alert-info">Your request has been sent to the governor for verification.</div>`;
+        witnessLogDiv.appendChild(messageDiv);
+      } else if (citizen.witnesses.some(witness => witness.status === 'Approved by Governorate')) {
+        const messageDiv = document.createElement('div');
+        messageDiv.innerHTML = `<div class="alert alert-info">Your request has been sent to the Qaimmaqam for certification generation. You will be shortly informed.</div>`;
+        witnessLogDiv.appendChild(messageDiv);
+      }
+    }
+    else {
+                    // Show prompt to add witness if none exist
+                    document.getElementById('addWitnessPrompt').style.display = 'block';
+                }
+
+                 // Hide 'Add Witness' button if the user role is 'Governor'
+      if (userRole === 'Governor') {
+        document.querySelector('.btn-success').style.display = 'none'; // Hide 'Add Witness' button
+      }
 
     if (userRole === 'Admin') {
       // Add event listener to update status only if user is Admin
@@ -233,11 +262,13 @@
           const witnessIndex = this.getAttribute('data-index');
           citizen.witnesses[witnessIndex].status = this.value;
           localStorage.setItem('citizens', JSON.stringify(citizens));
-          alert('Witness status updated!');
+          alert('Citizen status updated!');
+        
         });
       });
     }
-  } else {
+  }
+   else {
     alert('Citizen details not found!');
   }
  

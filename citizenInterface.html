@@ -140,6 +140,17 @@
                         `;
                         witnessLogDiv.appendChild(witnessDiv);
                     });
+                    // Check the witness status and show the respective message
+      if (citizen.witnesses.some(witness => witness.status === 'Approved by Mukhtar')) {
+        const messageDiv = document.createElement('div');
+        messageDiv.innerHTML = `<div class="alert alert-info">Your request has been sent to the governor for verification.</div>`;
+        witnessLogDiv.appendChild(messageDiv);
+      } else if (citizen.witnesses.some(witness => witness.status === 'Approved by Governorate')) {
+        const messageDiv = document.createElement('div');
+        messageDiv.innerHTML = `<div class="alert alert-info">Your request has been sent to the Qaimmaqam for certification generation. You will be shortly informed.</div>`;
+        witnessLogDiv.appendChild(messageDiv);
+      }
+    
                 } else {
                     // Show prompt to add witness if none exist
                     document.getElementById('addWitnessPrompt').style.display = 'block';

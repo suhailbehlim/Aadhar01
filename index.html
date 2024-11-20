@@ -174,85 +174,185 @@
     }
   });
 
-  function generateRandomCode() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let code = '';
-    for (let i = 0; i < 6; i++) {
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return code;
+//   function generateRandomCode() {
+//     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+//     let code = '';
+//     for (let i = 0; i < 6; i++) {
+//       code += chars.charAt(Math.floor(Math.random() * chars.length));
+//     }
+//     return code;
+//   }
+
+//   document.getElementById('registerForm').addEventListener('submit', function (event) {
+//     event.preventDefault();
+
+//     const citizenData = {
+//       name: document.getElementById('citizenName').value.trim(),
+//       phone: document.getElementById('citizenPhone').value.trim(),
+//       email: document.getElementById('citizenEmail').value.trim(),
+//       familyMembers: [],
+//       address: {
+//         area: document.getElementById('area').value.trim(),
+//         streetNumber: document.getElementById('streetNumber').value.trim(),
+//         houseNumber: document.getElementById('houseNumber').value.trim(),
+//         housingStatus: document.getElementById('housingStatus').value.trim()
+//       },
+//       documents: {
+//         nationalId: document.getElementById('nationalId').files[0]?.name,
+//         anotherId: document.getElementById('anotherId').files[0]?.name
+//       },
+//       selfImage: document.getElementById('selfImage').files[0]?.name,
+
+//       uniqueCode: generateRandomCode()
+//     };
+
+//     const familyCount = parseInt(document.getElementById('familyCount').value.trim(), 10);
+//     for (let i = 1; i <= familyCount; i++) {
+//       citizenData.familyMembers.push({
+//         name: document.getElementById(`familyMemberName${i}`).value.trim(),
+//         age: document.getElementById(`familyMemberAge${i}`).value.trim(),
+//         image: document.getElementById(`familyMemberImage${i}`).files[0]?.name
+//       });
+//     }
+
+//     let allCitizens = JSON.parse(localStorage.getItem('citizens')) || [];
+//     allCitizens.push(citizenData);
+//     localStorage.setItem('citizens', JSON.stringify(allCitizens));
+
+//     alert(`Citizen registered Unique code is sent to ${citizenData.email}.Or take screenshot of Unique code: ${citizenData.uniqueCode}`);
+//     this.reset();
+//   });
+// //   function handleLogin(event) {
+// //   event.preventDefault();
+// //   const email = document.getElementById('loginEmail').value.trim();
+// //   const password = document.getElementById('loginPassword').value.trim();
+
+// //   const hardcodedUsers = {
+// //     "admin@gmail.com": { password: "admin", role: "Admin" },
+// //     "mukhtar@gmail.com": { password: "123456", role: "User" },
+// //     "governor@gmail.com": { password: "123456", role: "Governor" },
+
+// //   };
+
+// //   const allCitizens = JSON.parse(localStorage.getItem('citizens')) || [];
+
+// //   // Check for hardcoded users
+// //   if (hardcodedUsers[email] && hardcodedUsers[email].password === password) {
+// //     localStorage.setItem('userRole', hardcodedUsers[email].role);
+// //     alert(`Welcome ${hardcodedUsers[email].role}`);
+// //     window.location.href = "mukhtarInterface.html";
+// //     return;
+// //   }
+
+// //   // Check for registered citizens
+// //   const citizen = allCitizens.find(
+// //     (cit) => cit.email === email && cit.uniqueCode === password
+// //   );
+
+// //   if (citizen) {
+// //     alert('Welcome Citizen!');
+// //     localStorage.setItem('citizenemail', email);
+
+// //     window.location.href = "citizenInterface.html";
+// //   } else {
+// //     alert('Invalid login credentials');
+// //   }
+// // }
+
+document.getElementById('registerForm').addEventListener('submit', function(event) {
+  event.preventDefault();
+
+  const citizenData = {
+    name: document.getElementById('citizenName').value.trim(),
+    mobileNo: document.getElementById('citizenPhone').value.trim(),
+    email: document.getElementById('citizenEmail').value.trim(),
+    area: document.getElementById('area').value.trim(),
+    streetNumber: document.getElementById('streetNumber').value.trim(),
+    houseNumber: document.getElementById('houseNumber').value.trim(),
+    housingStatus: document.getElementById('housingStatus').value,
+    familyMembers: [],
+  };
+
+  const familyCount = parseInt(document.getElementById('familyCount').value.trim(), 10);
+  for (let i = 1; i <= familyCount; i++) {
+    citizenData.familyMembers.push({
+      name: document.getElementById(`familyMemberName${i}`).value.trim(),
+      age: document.getElementById(`familyMemberAge${i}`).value.trim(),
+    });
   }
 
-  document.getElementById('registerForm').addEventListener('submit', function (event) {
-    event.preventDefault();
-
-    const citizenData = {
-      name: document.getElementById('citizenName').value.trim(),
-      phone: document.getElementById('citizenPhone').value.trim(),
-      email: document.getElementById('citizenEmail').value.trim(),
-      familyMembers: [],
-      address: {
-        area: document.getElementById('area').value.trim(),
-        streetNumber: document.getElementById('streetNumber').value.trim(),
-        houseNumber: document.getElementById('houseNumber').value.trim(),
-        housingStatus: document.getElementById('housingStatus').value.trim()
-      },
-      documents: {
-        nationalId: document.getElementById('nationalId').files[0]?.name,
-        anotherId: document.getElementById('anotherId').files[0]?.name
-      },
-      uniqueCode: generateRandomCode()
-    };
-
-    const familyCount = parseInt(document.getElementById('familyCount').value.trim(), 10);
-    for (let i = 1; i <= familyCount; i++) {
-      citizenData.familyMembers.push({
-        name: document.getElementById(`familyMemberName${i}`).value.trim(),
-        age: document.getElementById(`familyMemberAge${i}`).value.trim(),
-        image: document.getElementById(`familyMemberImage${i}`).files[0]?.name
-      });
+  // Send the citizen data as JSON
+  fetch('http://localhost:8082/citizen/register', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'  // Set Content-Type to application/json
+    },
+    body: JSON.stringify(citizenData)  // Send JSON data
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Registration failed. Please try again.');
     }
-
-    let allCitizens = JSON.parse(localStorage.getItem('citizens')) || [];
-    allCitizens.push(citizenData);
-    localStorage.setItem('citizens', JSON.stringify(allCitizens));
-
-    alert(`Citizen registered Unique code is sent to ${citizenData.email}.Or take screenshot of Unique code: ${citizenData.uniqueCode}`);
-    this.reset();
+    return response.json();
+  })
+  .then(data => {
+    alert(`Registration successful! Unique Code: ${data.uniqueCode}`);
+    document.getElementById('registerForm').reset();
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert(error.message);
   });
-  function handleLogin(event) {
+});
+
+function handleLogin(event) {
   event.preventDefault();
+
   const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value.trim();
 
-  const hardcodedUsers = {
-    "admin@gmail.com": { password: "admin", role: "Admin" },
-    "mukhtar@gmail.com": { password: "123456", role: "User" },
-  };
+  // Make API call to authenticate
+  fetch('http://localhost:8082/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      username: email,
+      password: password
+    })
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Invalid login credentials');
+    }
+    return response.json();
+  })
+  .then(data => {
+    // Extract roles and jwtToken
+    const userRole = data.roles[0]; // Assuming at least one role exists
+    const jwtToken = data.jwtToken;
 
-  const allCitizens = JSON.parse(localStorage.getItem('citizens')) || [];
+    // Save to localStorage
+    localStorage.setItem('username', data.username);
+    localStorage.setItem('name', data.name);
+    localStorage.setItem('userRole', userRole);
+    localStorage.setItem('jwtToken', jwtToken);
 
-  // Check for hardcoded users
-  if (hardcodedUsers[email] && hardcodedUsers[email].password === password) {
-    localStorage.setItem('userRole', hardcodedUsers[email].role);
-    alert(`Welcome ${hardcodedUsers[email].role}`);
-    window.location.href = "mukhtarInterface.html";
-    return;
-  }
+    alert(`Welcome, ${data.name}! Your role is ${userRole}.`);
 
-  // Check for registered citizens
-  const citizen = allCitizens.find(
-    (cit) => cit.email === email && cit.uniqueCode === password
-  );
-
-  if (citizen) {
-    alert('Welcome Citizen!');
-    localStorage.setItem('citizenemail', email);
-
-    window.location.href = "citizenInterface.html";
-  } else {
-    alert('Invalid login credentials');
-  }
+    // Redirect based on role
+    if (userRole === 'GOVERNOR') {
+      window.location.href = "governorInterface.html";
+    } else if (userRole === 'CITIZEN') {
+      window.location.href = "citizenInterface.html";
+    } else {
+      alert("Unauthorized role. Please contact support.");
+    }
+  })
+  .catch(error => {
+    alert(error.message);
+  });
 }
 
 </script>
